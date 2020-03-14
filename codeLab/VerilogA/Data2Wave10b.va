@@ -1,0 +1,61 @@
+// VerilogA for myverilogaLib, Data2Wave10b, veriloga
+// Description: file to waveform interface.
+// Reading the digital binary data(10bit) from "./data.v" and convert to waveform output. 
+
+`include "constants.vams"
+`include "disciplines.vams"
+`timescale 1ns/10ps
+
+module Data2Wave10b(Dout);
+
+output     [9:0] Dout;
+electrical [9:0] Dout;
+
+parameter real  Vpp = 1.5 ;
+parameter real  teperiod = 40n ; //25MHz
+
+real     tnext    ;
+integer  data     ;
+integer  fhandle  ;
+integer  bit[9:0] ;
+
+//Initialize the file port that will be read.
+  analog begin
+    @( initial_step ) begin
+     tnext = teperiod ;
+     fhandle = $fopen("./data.v","r");
+     end
+    @(timer(tnext))begin
+      $fscanf(fhandle,"%b",data);
+       bit[0] = (data & 01);
+       bit[1] = (data >> 1) & 01;
+       bit[2] = (data >> 2) & 01;
+       bit[3] = (data >> 3) & 01;
+       bit[4] = (data >> 4) & 01;
+       bit[5] = (data >> 5) & 01;
+       bit[6] = (data >> 6) & 01;
+       bit[7] = (data >> 7) & 01;
+       bit[8] = (data >> 8) & 01;
+       bit[9] = (data >> 9) & 01;
+      
+       tnext = tnext + teperiod ;
+      end
+
+//rise_time and falling_time are set 10ps.
+//The bits are converted to Dout with analog properties.
+    V(Dout[0]) <+ transition(Vpp*bit[0], 0, 10p);
+    V(Dout[1]) <+ transition(Vpp*bit[1], 0, 10p);
+    V(Dout[2]) <+ transition(Vpp*bit[2], 0, 10p);
+    V(Dout[3]) <+ transition(Vpp*bit[3], 0, 10p);
+    V(Dout[4]) <+ transition(Vpp*bit[4], 0, 10p);
+    V(Dout[5]) <+ transition(Vpp*bit[5], 0, 10p);
+    V(Dout[6]) <+ transition(Vpp*bit[6], 0, 10p);
+    V(Dout[7]) <+ transition(Vpp*bit[7], 0, 10p);
+    V(Dout[8]) <+ transition(Vpp*bit[8], 0, 10p);
+    V(Dout[9]) <+ transition(Vpp*bit[9], 0, 10p);
+  
+//set max simulate step;
+    $bound_step(teperiod);
+  end
+endmodule 
+
